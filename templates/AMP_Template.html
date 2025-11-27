@@ -1,371 +1,363 @@
 <!doctype html>
 <html ⚡4email>
   <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8">
     <style amp4email-boilerplate>body{visibility:hidden}</style>
     <script async src="https://cdn.ampproject.org/v0.js"></script>
-    <script async custom-element="amp-selector"
-            src="https://cdn.ampproject.org/v0/amp-selector-0.1.js"></script>
-    <title>Preference Collection Email</title>
-
+    <title>Preference Quiz Email</title>
     <style amp-custom>
       body {
-        margin: 0;
         padding: 0;
-        background-color: #f6f6f9;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        color: #111827;
-      }
-
-      .wrapper {
-        max-width: 600px;
-        margin: 0 auto;
-        background-color: #ffffff;
-        padding: 24px 20px 32px;
-      }
-
-      .preheader {
-        display: none !important;
-        visibility: hidden;
-        opacity: 0;
-        color: transparent;
-        height: 0;
-        width: 0;
-        max-height: 0;
-        max-width: 0;
-        overflow: hidden;
-      }
-
-      .section {
-        margin-bottom: 24px;
-      }
-
-      .logo {
-        margin-bottom: 16px;
-      }
-
-      h1 {
-        font-size: 24px;
-        line-height: 1.2;
-        margin: 16px 0 8px;
-        text-align: center;
-      }
-
-      p {
+        margin: 0;
+        background: #ffffff;
+        font-family: Arial, Helvetica, sans-serif;
         font-size: 14px;
-        line-height: 1.5;
-        margin: 4px 0 12px;
+        color: #555555;
       }
-
-      .center {
-        text-align: center;
+      table {
+        border-collapse: collapse;
+        border-spacing: 0;
       }
-
-      .hero {
-        margin: 16px 0 8px;
-      }
-
-      .btn-primary {
-        display: inline-block;
-        padding: 10px 18px;
-        border-radius: 999px;
-        background-color: #111827;
-        color: #ffffff;
-        font-size: 14px;
+      img {
+        border: 0;
+        line-height: 100%;
+        outline: none;
         text-decoration: none;
-        text-align: center;
+      }
+      .deviceWidth {
+        width: 100%;
+        padding: 0;
+      }
+      .w600 {
+        width: 600px;
       }
 
-      /* Quiz section */
-      .quiz-card {
-        margin-top: 24px;
-        border-radius: 16px;
-        border: 1px solid #e5e7eb;
-        padding: 16px 14px;
-        background-color: #f9fafb;
+      .quiz_box {
+        position: relative;
+      }
+      .quiz_box input {
+        position: absolute;
+        opacity: 0;
+      }
+      .quiz_box label {
+        font-weight: 400;
+        font-size: 1rem;
+        line-height: 1.25;
+        color: #000000;
+        background-color: #ffffff;
+        border: 1px solid #69655f;
+        padding: 5px;
+        border-radius: 2px;
+        text-align: center;
+        cursor: pointer;
+        min-height: 75px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .quiz_box input:checked + label {
+        border: 1px solid #69655f;
+        background-color: #c3d4ff;
+      }
+      .quiz_box div {
+        flex: 0 0 auto;
+        width: 100%;
       }
 
       .quiz-title {
-        font-size: 16px;
+        font-size: 1.35rem;
         font-weight: 700;
-        margin: 0 0 12px;
+        line-height: 1.1;
+        margin: 0;
+        padding: 0;
+        color: #000000;
         text-align: center;
+        letter-spacing: 0.5px;
+        transform: scale(1, 0.9);
       }
 
-      .quiz-subcopy {
-        font-size: 12px;
-        color: #6b7280;
-        text-align: center;
-        margin-bottom: 10px;
+      .quiz-text-question {
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+        font-size: 1rem;
       }
 
-      amp-selector.quiz-options {
-        display: block;
-      }
-
-      .quiz-option-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 8px;
-      }
-
-      .quiz-radio {
-        flex: 0 0 auto;
-      }
-
-      .quiz-label-wrap {
-        flex: 1 1 auto;
-      }
-
-      .quiz-pill {
-        display: inline-flex;
-        align-items: center;
-        justify-content: flex-start;
-        width: 100%;
-        padding: 8px 10px;
-        border-radius: 999px;
-        border: 1px solid #e5e7eb;
-        box-sizing: border-box;
-        cursor: pointer;
-      }
-
-      .quiz-pill[selected] {
-        background-color: #111827;
+      .quiz-submit {
+        font-size: 1rem;
+        min-height: 50px;
+        padding: 10px 20px;
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+        font-weight: 600;
+        line-height: 1.1;
         color: #ffffff;
-        border-color: #111827;
-      }
-
-      .quiz-pill-text {
-        font-size: 13px;
-      }
-
-      .quiz-product {
-        margin-top: 20px;
-        border-radius: 12px;
-        border: 1px solid #e5e7eb;
-        padding: 12px;
-        background-color: #ffffff;
+        background-color: #000000;
+        margin: 0;
+        border: none;
+        box-shadow: none;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        box-sizing: border-box;
       }
 
       .quiz-product-title {
-        font-size: 15px;
-        font-weight: 600;
-        margin: 10px 0 4px;
+        font-size: 1.25rem;
+        font-weight: 700;
+        line-height: 1.1;
+        margin: 0;
+        padding: 0;
+        color: #000000;
         text-align: center;
+        letter-spacing: 0.5px;
+        transform: scale(1, 0.9);
       }
 
-      .quiz-product-copy {
-        font-size: 12px;
-        color: #6b7280;
-        margin: 0 0 10px;
-        text-align: center;
-      }
-
-      .quiz-product-cta-wrap {
-        text-align: center;
-      }
-
-      .quiz-product-cta {
-        display: inline-block;
-        padding: 8px 16px;
-        border-radius: 999px;
-        border: 1px solid #111827;
-        text-decoration: none;
-        font-size: 13px;
-        color: #111827;
-        background-color: #ffffff;
-      }
-
-      /* Footer */
-      .footer {
-        margin-top: 32px;
-        font-size: 11px;
-        color: #9ca3af;
-        text-align: center;
-      }
-
-      .footer img {
-        display: block;
-        margin: 0 auto 8px;
-      }
-
-      .footer-links a {
-        color: #6b7280;
-        text-decoration: underline;
-        margin: 0 4px;
-        font-size: 11px;
+      @media all and (max-width: 500px) {
+        .w600 { width: 100%; }
+        .quiz-title { font-size: 1.1rem; }
+        .quiz_box label { font-size: 0.875rem; }
+        .quiz-submit { font-size: 0.875rem; min-height: 45px; padding: 7px 15px; }
+        .quiz-text-question { font-size: 0.875rem; }
+        .quiz-product-title { font-size: 1.1rem; }
       }
     </style>
   </head>
+  <body style="margin:0; padding:0; background-color:#ffffff;">
+    <div style="margin:0;padding:0;min-width:100%;">
+      <div style="width:100%;">
+        <div class="w600" style="margin:0 auto;padding:0px;background:#ffffff;">
+          <table width="100%" border="0" cellspacing="0" cellpadding="0">
+            <tr>
+              <td align="center" style="padding:0;margin:0;">
+                <div style="padding: 10px 0;"></div>
 
-  <body>
-    <!-- Optional preheader (can be wired later in app as a token if you want) -->
-    <span class="preheader">
-      Tell us what you like so we can personalize everything for you.
-    </span>
-
-    <div class="wrapper">
-      <!-- LOGO -->
-      <div class="section logo">
-        <a href="{{cta_url}}" target="_blank" style="text-decoration:none;">
-          <amp-img
-            src="{{logo_img_url}}"
-            width="{{logo_width}}"
-            height="{{logo_height}}"
-            layout="responsive"
-            alt="Logo">
-          </amp-img>
-        </a>
-      </div>
-
-      <!-- HERO -->
-      <div class="section hero">
-        <a href="{{cta_url}}" target="_blank" style="text-decoration:none;">
-          <amp-img
-            src="{{hero_img_url}}"
-            width="{{hero_width}}"
-            height="{{hero_height}}"
-            layout="responsive"
-            alt="Hero Image">
-          </amp-img>
-        </a>
-      </div>
-
-      <!-- INTRO COPY -->
-      <div class="section center">
-        <h1>{{quiz_question}}</h1>
-        <p>
-          Take a few seconds to tell us what you like so we can send you products and content that actually match your style.
-        </p>
-      </div>
-
-      <!-- QUIZ SECTION -->
-      <div class="section quiz-card">
-        <div class="quiz-title">{{quiz_question}}</div>
-        <div class="quiz-subcopy">
-          Choose one that feels most like you right now.
-        </div>
-
-        <!-- Optional quiz image (e.g., quiz product / mood shot) -->
-        <amp-img
-          src="{{quiz_img_url}}"
-          width="{{quiz_width}}"
-          height="{{quiz_height}}"
-          layout="responsive"
-          alt="Quiz Product Image">
-        </amp-img>
-
-        <!-- Quiz options -->
-        <amp-selector name="style_pref" class="quiz-options" layout="container">
-
-          <!-- Option 1 -->
-          <div class="quiz-option-row">
-            <div class="quiz-radio">
-              <input type="radio" name="answer_1" id="a_quiz1" value="opt1">
-            </div>
-            <div class="quiz-label-wrap">
-              <label for="a_quiz1">
-                <div class="quiz-pill" option="opt1">
-                  <span class="quiz-pill-text">{{quiz_opt1_label}}</span>
+                <!-- LOGO -->
+                <div style="max-width: 1000px;margin: 20px auto 0;">
+                  <a href="{{cta_url}}" target="_blank" style="color:#15c; text-decoration:underline;">
+                    <amp-img
+                      alt="Logo"
+                      title="Logo"
+                      layout="responsive"
+                      src="{{logo_img_url}}"
+                      width="{{logo_width}}"
+                      height="{{logo_height}}"
+                      style="height:auto;max-width:100%;display:block;">
+                    </amp-img>
+                  </a>
                 </div>
-              </label>
-            </div>
-          </div>
 
-          <!-- Option 2 -->
-          <div class="quiz-option-row">
-            <div class="quiz-radio">
-              <input type="radio" name="answer_1" id="a_quiz2" value="opt2">
-            </div>
-            <div class="quiz-label-wrap">
-              <label for="a_quiz2">
-                <div class="quiz-pill" option="opt2">
-                  <span class="quiz-pill-text">{{quiz_opt2_label}}</span>
+                <!-- HERO 1 -->
+                <div>
+                  <a href="{{cta_url}}" target="_blank" style="color:#15c; text-decoration:underline;">
+                    <amp-img
+                      alt="Hero Image"
+                      title="Hero Image"
+                      layout="responsive"
+                      src="{{hero_img_url}}"
+                      width="{{hero_width}}"
+                      height="{{hero_height}}"
+                      style="display:block;">
+                    </amp-img>
+                  </a>
                 </div>
-              </label>
-            </div>
-          </div>
 
-          <!-- Option 3 -->
-          <div class="quiz-option-row">
-            <div class="quiz-radio">
-              <input type="radio" name="answer_1" id="a_quiz3" value="opt3">
-            </div>
-            <div class="quiz-label-wrap">
-              <label for="a_quiz3">
-                <div class="quiz-pill" option="opt3">
-                  <span class="quiz-pill-text">{{quiz_opt3_label}}</span>
+                <!-- HERO 2 -->
+                <div>
+                  <a href="{{cta_url}}" target="_blank" style="color:#15c; text-decoration:underline;">
+                    <amp-img
+                      alt="Hero Image 2"
+                      title="Hero Image 2"
+                      layout="responsive"
+                      src="{{hero2_img_url}}"
+                      width="{{hero2_width}}"
+                      height="{{hero2_height}}"
+                      style="display:block;">
+                    </amp-img>
+                  </a>
                 </div>
-              </label>
-            </div>
-          </div>
 
-          <!-- Option 4 -->
-          <div class="quiz-option-row">
-            <div class="quiz-radio">
-              <input type="radio" name="answer_1" id="a_quiz4" value="opt4">
-            </div>
-            <div class="quiz-label-wrap">
-              <label for="a_quiz4">
-                <div class="quiz-pill" option="opt4">
-                  <span class="quiz-pill-text">{{quiz_opt4_label}}</span>
+                <div style="padding: 10px 0;"></div>
+
+                <!-- QUIZ WRAPPER -->
+                <div style="background-color: #ffffff;padding: 10px 10px 20px;">
+                  <div style="max-width: 534px;margin: 0 auto;">
+
+                    <!-- Quiz image -->
+                    <div style="margin-bottom: 10px;">
+                      <amp-img
+                        alt="Quiz Image"
+                        title="Quiz Image"
+                        layout="responsive"
+                        src="{{quiz_img_url}}"
+                        width="{{quiz_width}}"
+                        height="{{quiz_height}}"
+                        style="display:block;">
+                      </amp-img>
+                    </div>
+
+                    <!-- Question 1 -->
+                    <div style="margin-bottom: 15px;">
+                      <h3 class="quiz-title">{{quiz_question}}</h3>
+                    </div>
+
+                    <div style="display: flex;flex-wrap: wrap;justify-content: space-between;">
+                      <!-- Q1 Option 1 -->
+                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                        <div class="quiz_box">
+                          <input id="a_quiz1" name="answer_1" type="radio" value="opt1">
+                          <label for="a_quiz1">
+                            <div>{{quiz_opt1_label}}</div>
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- Q1 Option 2 -->
+                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                        <div class="quiz_box">
+                          <input id="a_quiz2" name="answer_1" type="radio" value="opt2">
+                          <label for="a_quiz2">
+                            <div>{{quiz_opt2_label}}</div>
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- Q1 Option 3 -->
+                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                        <div class="quiz_box">
+                          <input id="a_quiz3" name="answer_1" type="radio" value="opt3">
+                          <label for="a_quiz3">
+                            <div>{{quiz_opt3_label}}</div>
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- Q1 Option 4 -->
+                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                        <div class="quiz_box">
+                          <input id="a_quiz4" name="answer_1" type="radio" value="opt4">
+                          <label for="a_quiz4">
+                            <div>{{quiz_opt4_label}}</div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Question 2 -->
+                    <div style="margin-top: 20px;margin-bottom: 15px;">
+                      <h3 class="quiz-title">{{quiz2_question}}</h3>
+                    </div>
+
+                    <div style="display: flex;flex-wrap: wrap;justify-content: space-between;">
+                      <!-- Q2 Option 1 -->
+                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                        <div class="quiz_box">
+                          <input id="b_quiz1" name="answer_2" type="radio" value="opt1">
+                          <label for="b_quiz1">
+                            <div>{{quiz2_opt1_label}}</div>
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- Q2 Option 2 -->
+                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                        <div class="quiz_box">
+                          <input id="b_quiz2" name="answer_2" type="radio" value="opt2">
+                          <label for="b_quiz2">
+                            <div>{{quiz2_opt2_label}}</div>
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- Q2 Option 3 -->
+                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                        <div class="quiz_box">
+                          <input id="b_quiz3" name="answer_2" type="radio" value="opt3">
+                          <label for="b_quiz3">
+                            <div>{{quiz2_opt3_label}}</div>
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- Q2 Option 4 -->
+                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                        <div class="quiz_box">
+                          <input id="b_quiz4" name="answer_2" type="radio" value="opt4">
+                          <label for="b_quiz4">
+                            <div>{{quiz2_opt4_label}}</div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Quiz CTA -->
+                    <div style="text-align: center; padding-top: 10px;">
+                      <a href="{{cta_url}}" target="_blank" class="quiz-submit">See matches</a>
+                    </div>
+
+                    <!-- Product card -->
+                    <div style="max-width: 375px;margin: 20px auto 0;">
+                      <div style="background-color: #ffffff;padding: 10px;">
+                        <div class="quiz_thumb_box">
+                          <div>
+                            <a href="{{quiz_product_url}}" target="_blank" style="color:#15c; text-decoration:underline;">
+                              <amp-img
+                                alt="Quiz Product Image"
+                                title="Quiz Product Image"
+                                layout="responsive"
+                                src="{{quiz_product_img_url}}"
+                                width="{{quiz_product_width}}"
+                                height="{{quiz_product_height}}"
+                                style="display:block;">
+                              </amp-img>
+                            </a>
+                          </div>
+                          <div style="padding: 10px 0;">
+                            <h3 class="quiz-product-title">We think you'll love this</h3>
+                          </div>
+                          <div style="text-align: center;">
+                            <a href="{{quiz_product_url}}" target="_blank" class="quiz-submit">Shop Now</a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
                 </div>
-              </label>
-            </div>
-          </div>
 
-        </amp-selector>
+                <!-- FOOTER IMAGES -->
+                <div>
+                  <a href="{{cta_url}}" target="_blank" style="color:#15c; text-decoration:underline;">
+                    <amp-img
+                      alt="Footer Image 1"
+                      title="Footer Image 1"
+                      layout="responsive"
+                      src="{{footer1_img_url}}"
+                      width="{{footer1_width}}"
+                      height="{{footer1_height}}"
+                      style="display:block;">
+                    </amp-img>
+                  </a>
+                  <a href="{{cta_url}}" target="_blank" style="color:#15c; text-decoration:underline;">
+                    <amp-img
+                      alt="Footer Image 2"
+                      title="Footer Image 2"
+                      layout="responsive"
+                      src="{{footer2_img_url}}"
+                      width="{{footer2_width}}"
+                      height="{{footer2_height}}"
+                      style="display:block;">
+                    </amp-img>
+                  </a>
+                </div>
 
-        <!-- Quiz CTA -->
-        <div class="center" style="margin-top:16px;">
-          <a href="{{cta_url}}" class="btn-primary" target="_blank">
-            Continue shopping
-          </a>
-        </div>
-      </div>
-
-      <!-- QUIZ PRODUCT / RESULT CARD -->
-      <div class="section quiz-product">
-        <amp-img
-          src="{{quiz_product_img_url}}"
-          width="{{quiz_product_width}}"
-          height="{{quiz_product_height}}"
-          layout="responsive"
-          alt="Quiz Product Image">
-        </amp-img>
-
-        <div class="quiz-product-title">
-          {{quiz_product_title}}
-        </div>
-        <div class="quiz-product-copy">
-          {{quiz_product_copy}}
-        </div>
-        <div class="quiz-product-cta-wrap">
-          <a href="{{quiz_product_cta_url}}" class="quiz-product-cta" target="_blank">
-            Shop this edit
-          </a>
-        </div>
-      </div>
-
-      <!-- FOOTER -->
-      <div class="footer section">
-        <!-- Optional footer image -->
-        <amp-img
-          src="{{footer_img_url}}"
-          width="{{footer_width}}"
-          height="{{footer_height}}"
-          layout="responsive"
-          alt="Footer Image">
-        </amp-img>
-
-        <div style="margin-top:8px;">
-          You are receiving this email because you signed up for updates from our brand.
-        </div>
-
-        <div class="footer-links" style="margin-top:6px;">
-          <a href="{{cta_url}}" target="_blank">Shop all</a> •
-          <a href="{{unsubscribe_url}}" target="_blank">Unsubscribe</a>
+                <div style="padding: 10px 0;"></div>
+              </td>
+            </tr>
+          </table>
         </div>
       </div>
     </div>
