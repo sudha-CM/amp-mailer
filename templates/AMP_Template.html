@@ -3,8 +3,15 @@
   <head>
     <meta charset="utf-8">
     <style amp4email-boilerplate>body{visibility:hidden}</style>
+
+    <!-- Core AMP -->
     <script async src="https://cdn.ampproject.org/v0.js"></script>
+    <!-- Needed for forms & multi-step quiz -->
+    <script async custom-element="amp-form" src="https://cdn.ampproject.org/v0/amp-form-0.1.js"></script>
+    <script async custom-element="amp-bind" src="https://cdn.ampproject.org/v0/amp-bind-0.1.js"></script>
+
     <title>Preference Quiz Email</title>
+
     <style amp-custom>
       body {
         padding: 0;
@@ -24,12 +31,12 @@
         outline: none;
         text-decoration: none;
       }
+      .w600 {
+        width: 600px;
+      }
       .deviceWidth {
         width: 100%;
         padding: 0;
-      }
-      .w600 {
-        width: 600px;
       }
 
       .quiz_box {
@@ -116,6 +123,9 @@
         transform: scale(1, 0.9);
       }
 
+      .displayBlock { display: block; }
+      .displayNone { display: none; }
+
       @media all and (max-width: 500px) {
         .w600 { width: 100%; }
         .quiz-title { font-size: 1.1rem; }
@@ -126,7 +136,21 @@
       }
     </style>
   </head>
+
   <body style="margin:0; padding:0; background-color:#ffffff;">
+    <!-- AMP state objects for multi-step quiz -->
+    <amp-state id="responseDataQuestion1">
+      <script type="application/json">
+        {"status": "", "message": "", "last_query_id": "", "answer": ""}
+      </script>
+    </amp-state>
+
+    <amp-state id="responseDataQuestion2">
+      <script type="application/json">
+        {"status": "", "message": "", "last_query_id": ""}
+      </script>
+    </amp-state>
+
     <div style="margin:0;padding:0;min-width:100%;">
       <div style="width:100%;">
         <div class="w600" style="margin:0 auto;padding:0px;background:#ffffff;">
@@ -182,149 +206,260 @@
 
                 <div style="padding: 10px 0;"></div>
 
-                <!-- QUIZ WRAPPER -->
-                <div style="background-color: #ffffff;padding: 10px 10px 20px;">
-                  <div style="max-width: 534px;margin: 0 auto;">
+                <!-- QUIZ + PRODUCT SECTION -->
+                <div>
+                  <div style="background-color: #ffff;padding: 10px 10px 20px;">
+                    <div style="max-width: 534px;margin: 0 auto;">
 
-                    <!-- Quiz image -->
-                    <div style="margin-bottom: 10px;">
-                      <amp-img
-                        alt="Quiz Image"
-                        title="Quiz Image"
-                        layout="responsive"
-                        src="{{quiz_img_url}}"
-                        width="{{quiz_width}}"
-                        height="{{quiz_height}}"
-                        style="display:block;">
-                      </amp-img>
-                    </div>
-
-                    <!-- Question 1 -->
-                    <div style="margin-bottom: 15px;">
-                      <h3 class="quiz-title">{{quiz_question}}</h3>
-                    </div>
-
-                    <div style="display: flex;flex-wrap: wrap;justify-content: space-between;">
-                      <!-- Q1 Option 1 -->
-                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
-                        <div class="quiz_box">
-                          <input id="a_quiz1" name="answer_1" type="radio" value="opt1">
-                          <label for="a_quiz1">
-                            <div>{{quiz_opt1_label}}</div>
-                          </label>
-                        </div>
+                      <!-- Quiz image -->
+                      <div style="margin-bottom: 10px;">
+                        <amp-img
+                          alt="Quiz Image"
+                          title="Quiz Image"
+                          layout="responsive"
+                          src="{{quiz_img_url}}"
+                          width="{{quiz_width}}"
+                          height="{{quiz_height}}"
+                          style="display:block;">
+                        </amp-img>
                       </div>
 
-                      <!-- Q1 Option 2 -->
-                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
-                        <div class="quiz_box">
-                          <input id="a_quiz2" name="answer_1" type="radio" value="opt2">
-                          <label for="a_quiz2">
-                            <div>{{quiz_opt2_label}}</div>
-                          </label>
-                        </div>
+                      <!-- Info text (optional) -->
+                      <div [class]="responseDataQuestion1.status == 'success' && responseDataQuestion2.status == 'success' ? 'displayNone':'displayBlock'" class="displayBlock" style="margin-bottom: 15px;">
+                        <!-- could add a generic intro here if needed -->
                       </div>
 
-                      <!-- Q1 Option 3 -->
-                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
-                        <div class="quiz_box">
-                          <input id="a_quiz3" name="answer_1" type="radio" value="opt3">
-                          <label for="a_quiz3">
-                            <div>{{quiz_opt3_label}}</div>
-                          </label>
-                        </div>
-                      </div>
+                      <!-- ========== SCREEN 1 (Q1) ========== -->
+                      <div [class]="responseDataQuestion1.status == 'success' ? 'displayNone':'displayBlock'" class="displayBlock">
+                        <form
+                          action-xhr="https://newdell38.mytoday.com/AMP/pattern_beauty_25july2024/pattern_beauty_quiz_api_20240801.php"
+                          id="form1"
+                          method="post"
+                          on="submit-success:AMP.setState({
+                                responseDataQuestion1: {
+                                  status: event.response.status,
+                                  message: event.response.message,
+                                  last_query_id: event.response.oid,
+                                  answer: event.response.answer
+                                }
+                              });">
 
-                      <!-- Q1 Option 4 -->
-                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
-                        <div class="quiz_box">
-                          <input id="a_quiz4" name="answer_1" type="radio" value="opt4">
-                          <label for="a_quiz4">
-                            <div>{{quiz_opt4_label}}</div>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Question 2 -->
-                    <div style="margin-top: 20px;margin-bottom: 15px;">
-                      <h3 class="quiz-title">{{quiz2_question}}</h3>
-                    </div>
-
-                    <div style="display: flex;flex-wrap: wrap;justify-content: space-between;">
-                      <!-- Q2 Option 1 -->
-                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
-                        <div class="quiz_box">
-                          <input id="b_quiz1" name="answer_2" type="radio" value="opt1">
-                          <label for="b_quiz1">
-                            <div>{{quiz2_opt1_label}}</div>
-                          </label>
-                        </div>
-                      </div>
-
-                      <!-- Q2 Option 2 -->
-                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
-                        <div class="quiz_box">
-                          <input id="b_quiz2" name="answer_2" type="radio" value="opt2">
-                          <label for="b_quiz2">
-                            <div>{{quiz2_opt2_label}}</div>
-                          </label>
-                        </div>
-                      </div>
-
-                      <!-- Q2 Option 3 -->
-                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
-                        <div class="quiz_box">
-                          <input id="b_quiz3" name="answer_2" type="radio" value="opt3">
-                          <label for="b_quiz3">
-                            <div>{{quiz2_opt3_label}}</div>
-                          </label>
-                        </div>
-                      </div>
-
-                      <!-- Q2 Option 4 -->
-                      <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
-                        <div class="quiz_box">
-                          <input id="b_quiz4" name="answer_2" type="radio" value="opt4">
-                          <label for="b_quiz4">
-                            <div>{{quiz2_opt4_label}}</div>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Quiz CTA -->
-                    <div style="text-align: center; padding-top: 10px;">
-                      <a href="{{cta_url}}" target="_blank" class="quiz-submit">See matches</a>
-                    </div>
-
-                    <!-- Product card -->
-                    <div style="max-width: 375px;margin: 20px auto 0;">
-                      <div style="background-color: #ffffff;padding: 10px;">
-                        <div class="quiz_thumb_box">
-                          <div>
-                            <a href="{{quiz_product_url}}" target="_blank" style="color:#15c; text-decoration:underline;">
-                              <amp-img
-                                alt="Quiz Product Image"
-                                title="Quiz Product Image"
-                                layout="responsive"
-                                src="{{quiz_product_img_url}}"
-                                width="{{quiz_product_width}}"
-                                height="{{quiz_product_height}}"
-                                style="display:block;">
-                              </amp-img>
-                            </a>
-                          </div>
                           <div style="padding: 10px 0;">
-                            <h3 class="quiz-product-title">We think you'll love this</h3>
+                            <div style="font-family: 'Helvetica', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;">
+                              <h3 class="quiz-title">
+                                {{quiz_question}}
+                              </h3>
+                            </div>
+
+                            <div style="padding: 10px 0;"></div>
+
+                            <div style="display: flex;flex-wrap: wrap;justify-content: space-between;">
+
+                              <!-- Q1 Option 1 -->
+                              <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                                <div class="quiz_box" style="font-family: 'Helvetica', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;">
+                                  <input id="a_quiz1" name="answer_1" required type="radio" value="Curly">
+                                  <label for="a_quiz1">
+                                    <div style="flex: 0 0 auto;width: 100%;">{{quiz_opt1_label}}</div>
+                                  </label>
+                                </div>
+                              </div>
+
+                              <!-- Q1 Option 2 -->
+                              <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                                <div class="quiz_box" style="font-family: 'Helvetica', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;">
+                                  <input id="a_quiz2" name="answer_1" required type="radio" value="Coily">
+                                  <label for="a_quiz2">
+                                    <div style="flex: 0 0 auto;width: 100%;">{{quiz_opt2_label}}</div>
+                                  </label>
+                                </div>
+                              </div>
+
+                              <!-- Q1 Option 3 -->
+                              <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                                <div class="quiz_box" style="font-family: 'Helvetica', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;">
+                                  <input id="a_quiz3" name="answer_1" required type="radio" value="Tight Texture">
+                                  <label for="a_quiz3">
+                                    <div style="flex: 0 0 auto;width: 100%;">{{quiz_opt3_label}}</div>
+                                  </label>
+                                </div>
+                              </div>
+
+                              <!-- Q1 Option 4 -->
+                              <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                                <div class="quiz_box" style="font-family: 'Helvetica', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;">
+                                  <input id="a_quiz4" name="answer_1" required type="radio" value="Locs/Protective Styles">
+                                  <label for="a_quiz4">
+                                    <div style="flex: 0 0 auto;width: 100%;">{{quiz_opt4_label}}</div>
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Hidden fields (keep as-is for now; these are AMP backend-related) -->
+                            <input name="subscriber_email" type="hidden" value="[EMAIL]">
+                            <input name="campaign_id" type="hidden" value="[SMT_MID]">
+                            <input name="request_form_type" type="hidden" value="AMP">
+                            <input name="form_no" type="hidden" value="1">
+
+                            <p style="padding: 10px 0;margin: 0;"></p>
+
+                            <div class="loader-block mt25 mt15" submitting>
+                              <amp-img
+                                alt="loader gif"
+                                height="59"
+                                width="60"
+                                src="https://prashnam-team.s3.ap-south-1.amazonaws.com/icici_prudential_sip_renewal_2024_06_19/loder.gif">
+                              </amp-img>
+                            </div>
+
+                            <div style="text-align: center;">
+                              <button class="quiz-submit" type="submit">
+                                Next
+                              </button>
+                            </div>
                           </div>
-                          <div style="text-align: center;">
-                            <a href="{{quiz_product_url}}" target="_blank" class="quiz-submit">Shop Now</a>
+
+                          <div [class]="responseDataQuestion1.status == 'error' ? 'displayBlock':'displayNone'" class="displayNone" style="margin-top: 20px; color:#ff0000">
+                            <span [text]="responseDataQuestion1.message">Something went wrong.... please try again</span>
+                          </div>
+                        </form>
+                      </div>
+                      <!-- ========== END SCREEN 1 ========== -->
+
+                      <!-- ========== SCREEN 2 (Q2) ========== -->
+                      <div [class]="responseDataQuestion1.status == 'success' ? responseDataQuestion2.status == 'success' ? 'displayNone':'displayBlock':'displayNone'" class="displayNone">
+                        <form
+                          action-xhr="https://newdell38.mytoday.com/AMP/pattern_beauty_25july2024/pattern_beauty_quiz_api_20240801.php"
+                          id="form2"
+                          method="post"
+                          on="submit-success:AMP.setState({
+                                responseDataQuestion2: {
+                                  status: event.response.status,
+                                  message: event.response.message,
+                                  last_query_id: event.response.oid
+                                }
+                              });">
+
+                          <div style="padding: 10px 0;">
+                            <div style="font-family: 'Helvetica', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;">
+                              <h3 class="quiz-title">
+                                {{quiz2_question}}
+                              </h3>
+                            </div>
+
+                            <div style="padding: 10px 0;"></div>
+
+                            <div style="display: flex;flex-wrap: wrap;justify-content: space-between;">
+
+                              <!-- Q2 Option 1 -->
+                              <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                                <div class="quiz_box" style="font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;">
+                                  <input id="b_quiz1" name="answer_2" type="radio" value="Wash & Go / Twists Outs">
+                                  <label for="b_quiz1">
+                                    <div style="flex: 0 0 auto;width: 100%;">{{quiz2_opt1_label}}</div>
+                                  </label>
+                                </div>
+                              </div>
+
+                              <!-- Q2 Option 2 -->
+                              <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                                <div class="quiz_box" style="font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;">
+                                  <input id="b_quiz2" name="answer_2" type="radio" value="Locs/Protective Styles">
+                                  <label for="b_quiz2">
+                                    <div style="flex: 0 0 auto;width: 100%;">{{quiz2_opt2_label}}</div>
+                                  </label>
+                                </div>
+                              </div>
+
+                              <!-- Q2 Option 3 -->
+                              <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                                <div class="quiz_box" style="font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;">
+                                  <input id="b_quiz3" name="answer_2" type="radio" value="Extensions/Wigs">
+                                  <label for="b_quiz3">
+                                    <div style="flex: 0 0 auto;width: 100%;">{{quiz2_opt3_label}}</div>
+                                  </label>
+                                </div>
+                              </div>
+
+                              <!-- Q2 Option 4 -->
+                              <div style="margin-bottom: 4px;flex: 0 0 auto;width: calc(50% - 2px);">
+                                <div class="quiz_box" style="font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;">
+                                  <input id="b_quiz4" name="answer_2" type="radio" value="Top Knot / Bun">
+                                  <label for="b_quiz4">
+                                    <div style="flex: 0 0 auto;width: 100%;">{{quiz2_opt4_label}}</div>
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Hidden fields -->
+                            <input name="subscriber_email" type="hidden" value="[EMAIL]">
+                            <input name="campaign_id" type="hidden" value="[SMT_MID]">
+                            <input [value]="responseDataQuestion1.last_query_id" name="last_query_id" type="hidden">
+                            <input name="form_no" type="hidden" value="2">
+
+                            <p style="padding: 10px 0;margin: 0;"></p>
+
+                            <div class="loader-block mt25 mt15" submitting>
+                              <amp-img
+                                alt="loader gif"
+                                height="59"
+                                width="60"
+                                src="https://prashnam-team.s3.ap-south-1.amazonaws.com/icici_prudential_sip_renewal_2024_06_19/loder.gif">
+                              </amp-img>
+                            </div>
+
+                            <div style="text-align: center;">
+                              <button class="quiz-submit" type="submit">
+                                Next
+                              </button>
+                            </div>
+
+                            <div [class]="responseDataQuestion2.status == 'error' ? 'displayBlock':'displayNone'" class="displayNone" style="margin-top: 20px; color:#ff0000">
+                              <span [text]="responseDataQuestion2.message">Something went wrong.... please try again</span>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+                      <!-- ========== END SCREEN 2 ========== -->
+
+                      <!-- ========== SUCCESS PRODUCT CARD (AFTER Q2) ========== -->
+                      <div [class]="responseDataQuestion2.status == 'success' ? 'displayBlock':'displayNone'" class="displayNone">
+                        <div style="max-width: 375px;margin: 0 auto;">
+                          <div style="margin: 10px 0;">
+                            <div style="background-color: #ffffff;padding: 10px;">
+                              <div class="quiz_thumb_box" style="font-family: 'Helvetica', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;">
+                                <div>
+                                  <a href="{{quiz_product_url}}" style="color:#15c; font-style:normal; font-weight:normal; text-decoration:underline" target="_blank">
+                                    <amp-img
+                                      alt="Quiz Product Image"
+                                      title="Quiz Product Image"
+                                      layout="responsive"
+                                      src="{{quiz_product_img_url}}"
+                                      width="{{quiz_product_width}}"
+                                      height="{{quiz_product_height}}"
+                                      style="display:block;">
+                                    </amp-img>
+                                  </a>
+                                </div>
+                                <div style="font-family: 'Helvetica', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;padding: 10px 0;">
+                                  <h3 class="quiz-product-title">
+                                    We think you'll love this
+                                  </h3>
+                                </div>
+                                <div style="text-align: center;">
+                                  <a class="quiz-submit" href="{{quiz_product_url}}" target="_blank">
+                                    Shop Now
+                                  </a>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
+                      <!-- ========== END SUCCESS PRODUCT CARD ========== -->
                     </div>
-
                   </div>
                 </div>
 
