@@ -45,10 +45,6 @@ def _diag_try_direct_upload():
     except Exception as e:
         st.exception(e)
 
-with st.expander("Cloudinary diagnostics", expanded=True):
-    if st.button("Run Cloudinary test upload"):
-        _diag_try_direct_upload()
-
 
 AMP_PATH = Path("templates/AMP_Template.html")
 FALLBACK_PATH = Path("templates/Fallback_Template.html")
@@ -123,74 +119,132 @@ def send_v6(subject: str, to_email: str, amp_html: str, fallback_html: str, preh
 
 
 # ---------- Inputs (Images + CTA + Quiz labels only) ----------
+# ---------- Inputs + CTA + Quiz labels ----------
 st.markdown("## Inputs")
 
 cta_url = st.text_input("Primary CTA URL", value="https://example.com")
+quiz_product_url = st.text_input("Quiz product URL", value="https://example.com/collection")
+
+st.markdown("### Images")
 
 colA, colB = st.columns(2)
 with colA:
-    logo_up = st.file_uploader("Logo (png/jpg/jpeg/svg)", type=["png","jpg","jpeg","svg"])
+    logo_up = st.file_uploader("Logo (png/jpg/jpeg/svg)", type=["png", "jpg", "jpeg", "svg"])
 with colB:
-    hero_up = st.file_uploader("Hero (png/jpg/jpeg)", type=["png","jpg","jpeg"])
+    hero_up = st.file_uploader("Hero image 1 (png/jpg/jpeg)", type=["png", "jpg", "jpeg"])
 
-# Default placeholders (work even if Cloudinary isn’t configured yet)
-logo_url = "https://via.placeholder.com/160x48?text=Logo"
-hero_url = "https://via.placeholder.com/1200x600?text=Hero"
-logo_w, logo_h = 160, 48
-hero_w, hero_h = 1200, 600
+colC, colD = st.columns(2)
+with colC:
+    hero2_up = st.file_uploader("Hero image 2 (optional)", type=["png", "jpg", "jpeg"])
+with colD:
+    quiz_img_up = st.file_uploader("Quiz header image (optional)", type=["png", "jpg", "jpeg"])
 
-# Try Cloudinary hosting if secrets present; otherwise keep placeholders
-if logo_up:
-    data = logo_up.read()
+colE, colF = st.columns(2)
+with colE:
+    quiz_product_up = st.file_uploader("Quiz product image", type=["png", "jpg", "jpeg"])
+with colF:
+    footer1_up = st.file_uploader("Footer image 1 (optional)", type=["png", "jpg", "jpeg"])
+
+footer2_up = st.file_uploader("Footer image 2 (optional)", type=["png", "jpg", "jpeg"])
+
+# Default placeholders so template still renders even without uploads
+logo_url, logo_w, logo_h = "https://via.placeholder.com/160x48?text=Logo", 160, 48
+hero_url, hero_w, hero_h = "https://via.placeholder.com/1200x600?text=Hero+1", 1200, 600
+hero2_url, hero2_w, hero2_h = "https://via.placeholder.com/1200x600?text=Hero+2", 1200, 600
+quiz_img_url, quiz_w, quiz_h = "https://via.placeholder.com/600x300?text=Quiz+Image", 600, 300
+quiz_product_img_url, quiz_product_w, quiz_product_h = "https://via.placeholder.com/600x600?text=Quiz+Product", 600, 600
+footer1_img_url, footer1_w, footer1_h = "https://via.placeholder.com/1088x552?text=Footer+1", 1088, 552
+footer2_img_url, footer2_w, footer2_h = "https://via.placeholder.com/1086x954?text=Footer+2", 1086, 954
+
+# Helper: try Cloudinary if configured, otherwise just detect dimensions
+def _handle_upload(file, public_id, placeholder_url, default_w, default_h):
+    url, w, h = placeholder_url, default_w, default_h
+    if not file:
+        return url, w, h
+    data = file.read()
     try:
-        up = cloudinary_upload(data, f"logo-{logo_up.name}")
-        logo_url, logo_w, logo_h = up["url"], up["width"], up["height"]
-        st.success(f"Logo uploaded: {logo_w}×{logo_h}")
+        up = cloudinary_upload(data, public_id)
+        url, w, h = up["url"], up.get("width", default_w), up.get("height", default_h)
+        st.success(f"{public_id} uploaded: {w}×{h}")
     except Exception:
-        # no Cloudinary configured; still detect real size for tokens
-        if logo_up.type != "image/svg+xml":
-            logo_w, logo_h = dims(data)
-            st.warning("Cloudinary not set — using placeholder URL but real width/height inserted.")
-        else:
-            st.warning("SVG uploaded; keeping default 160×48 unless you host it and set exact size.")
+        # Cloudinary not set or blocked — fall back to local dim detection
+        try:
+            w, h = dims(data)
+            st.warning(f"{public_id}: using placeholder URL but real width/height inserted ({w}×{h}).")
+        except Exception:
+            st.warning(f"{public_id}: using default size {default_w}×{default_h}.")
+    return url, w, h
 
-if hero_up:
-    data = hero_up.read()
-    try:
-        up = cloudinary_upload(data, f"hero-{hero_up.name}")
-        hero_url, hero_w, hero_h = up["url"], up["width"], up["height"]
-        st.success(f"Hero uploaded: {hero_w}×{hero_h}")
-    except Exception:
-        hero_w, hero_h = dims(data)
-        st.warning("Cloudinary not set — using placeholder URL but real width/height inserted.")
+# Apply to each image
+logo_url, logo_w, logo_h = _handle_upload(logo_up, "logo", logo_url, logo_w, logo_h)
+hero_url, hero_w, hero_h = _handle_upload(hero_up, "hero1", hero_url, hero_w, hero_h)
+hero2_url, hero2_w, hero2_h = _handle_upload(hero2_up, "hero2", hero2_url, hero2_w, hero2_h)
+quiz_img_url, quiz_w, quiz_h = _handle_upload(quiz_img_up, "quiz-header", quiz_img_url, quiz_w, quiz_h)
+quiz_product_img_url, quiz_product_w, quiz_product_h = _handle_upload(quiz_product_up, "quiz-product", quiz_product_img_url, quiz_product_w, quiz_product_h)
+footer1_img_url, footer1_w, footer1_h = _handle_upload(footer1_up, "footer1", footer1_img_url, footer1_w, footer1_h)
+footer2_img_url, footer2_w, footer2_h = _handle_upload(footer2_up, "footer2", footer2_img_url, footer2_w, footer2_h)
 
-st.markdown("### Quiz (labels only — values remain unchanged in the AMP)")
-quiz_question   = st.text_input("Quiz Question", value="Which style do you like most?")
-quiz_opt1_label = st.text_input("Option 1 label", value="Classic")
-quiz_opt2_label = st.text_input("Option 2 label", value="Modern")
-quiz_opt3_label = st.text_input("Option 3 label", value="Minimal")
-quiz_opt4_label = st.text_input("Option 4 label", value="Bold")
+# Quiz questions
 
-st.caption("Per your rule: we do NOT edit the underlying value attributes in the AMP; only visible labels are replaced.")
+st.markdown("### Quiz — Question 1")
+quiz_question   = st.text_input("Q1: Question", value="What would you like to shop?")
+quiz_opt1_label = st.text_input("Q1: Option 1 label", value="New Arrivals")
+quiz_opt2_label = st.text_input("Q1: Option 2 label", value="The Daily Drop")
+quiz_opt3_label = st.text_input("Q1: Option 3 label", value="Occasions")
+quiz_opt4_label = st.text_input("Q1: Option 4 label", value="Sale")
+
+st.markdown("### Quiz — Question 2")
+quiz2_question   = st.text_input("Q2: Question", value="What in New Arrivals:")
+quiz2_opt1_label = st.text_input("Q2: Option 1 label", value="The Fall Edit")
+quiz2_opt2_label = st.text_input("Q2: Option 2 label", value="Sweaters")
+quiz2_opt3_label = st.text_input("Q2: Option 3 label", value="Tops and Tees")
+quiz2_opt4_label = st.text_input("Q2: Option 4 label", value="Skirts and Pants")
+
+st.caption("Per your rule: we only change visible labels/text in the AMP template, never the underlying option values.")
 
 # ---------- Build token map & generate AMP ----------
 token_map = {
     # images
-    "logo_img_url":  logo_url,
-    "logo_width":    logo_w,
-    "logo_height":   logo_h,
-    "hero_img_url":  hero_url,
-    "hero_width":    hero_w,
-    "hero_height":   hero_h,
+    "logo_img_url":         logo_url,
+    "logo_width":           logo_w,
+    "logo_height":          logo_h,
+    "hero_img_url":         hero_url,
+    "hero_width":           hero_w,
+    "hero_height":          hero_h,
+    "hero2_img_url":        hero2_url,
+    "hero2_width":          hero2_w,
+    "hero2_height":         hero2_h,
+    "quiz_img_url":         quiz_img_url,
+    "quiz_width":           quiz_w,
+    "quiz_height":          quiz_h,
+    "quiz_product_img_url": quiz_product_img_url,
+    "quiz_product_width":   quiz_product_w,
+    "quiz_product_height":  quiz_product_h,
+    "footer1_img_url":      footer1_img_url,
+    "footer1_width":        footer1_w,
+    "footer1_height":       footer1_h,
+    "footer2_img_url":      footer2_img_url,
+    "footer2_width":        footer2_w,
+    "footer2_height":       footer2_h,
+
     # links
-    "cta_url":       cta_url,
-    # quiz labels only (values untouched in template)
-    "quiz_question":    quiz_question,
-    "quiz_opt1_label":  quiz_opt1_label,
-    "quiz_opt2_label":  quiz_opt2_label,
-    "quiz_opt3_label":  quiz_opt3_label,
-    "quiz_opt4_label":  quiz_opt4_label,
+    "cta_url":              cta_url,
+    "quiz_product_url":     quiz_product_url,
+
+    # quiz labels
+    "quiz_question":        quiz_question,
+    "quiz_opt1_label":      quiz_opt1_label,
+    "quiz_opt2_label":      quiz_opt2_label,
+    "quiz_opt3_label":      quiz_opt3_label,
+    "quiz_opt4_label":      quiz_opt4_label,
+
+    "quiz2_question":       quiz2_question,
+    "quiz2_opt1_label":     quiz2_opt1_label,
+    "quiz2_opt2_label":     quiz2_opt2_label,
+    "quiz2_opt3_label":     quiz2_opt3_label,
+    "quiz2_opt4_label":     quiz2_opt4_label,
 }
+
 
 amp_final = replace_tokens(amp_src, token_map)
 errs = amp_basics_ok(amp_final)
