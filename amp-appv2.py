@@ -15,10 +15,6 @@ st.title("AMP Mailer — v2 (images + quiz inputs)")
 import os, requests, io
 from PIL import Image
 
-st.write("Working dir:", os.getcwd())
-st.write("Cloudinary cloud:", repr(st.secrets.get("CLOUDINARY_CLOUD_NAME", "")))
-st.write("Cloudinary preset:", repr(st.secrets.get("CLOUDINARY_UPLOAD_PRESET", "")))
-
 def _diag_try_direct_upload():
     cloud = st.secrets.get("CLOUDINARY_CLOUD_NAME", "")
     preset = st.secrets.get("CLOUDINARY_UPLOAD_PRESET", "")
