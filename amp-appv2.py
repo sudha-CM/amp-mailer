@@ -1,4 +1,5 @@
 import io
+import hashlib
 from pathlib import Path
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -51,7 +52,7 @@ fb_ok  = FALLBACK_PATH.exists()
 amp_src = AMP_PATH.read_text(encoding="utf-8") if amp_ok else ""
 fb_src  = FALLBACK_PATH.read_text(encoding="utf-8") if fb_ok else ""
 
-# ---------- Helpers ----------
+# ---------- Helpers ---------- this is the new version
 def replace_tokens(html: str, mapping: dict) -> str:
     out = html
     for k, v in mapping.items():
@@ -76,7 +77,12 @@ def cloudinary_upload(file_bytes: bytes, public_id: str) -> dict:
         raise RuntimeError("Cloudinary not configured in secrets.toml")
     url = f"https://api.cloudinary.com/v1_1/{cloud}/image/upload"
     files = {"file": file_bytes}
-    data  = {"upload_preset": preset, "public_id": public_id}
+    data = {
+        "upload_preset": preset,
+        "public_id": public_id,
+        "overwrite": "true",
+        "invalidate": "true",
+    }
     import certifi
     r = requests.post(url, files=files, data=data, timeout=60, verify=certifi.where())
     if r.status_code >= 400:
@@ -114,52 +120,23 @@ def send_v6(subject: str, to_email: str, amp_html: str, fallback_html: str, preh
     return requests.post(url, headers=headers, json=payload, timeout=60)
 
 
-# ---------- Inputs (Images + CTA + Quiz labels only) ----------
-# ---------- Inputs + CTA + Quiz labels ----------
-st.markdown("## Inputs")
-
-cta_url = st.text_input("Primary CTA URL", value="https://example.com")
-quiz_product_url = st.text_input("Quiz product URL", value="https://example.com/collection")
-
-st.markdown("### Images")
-
-colA, colB = st.columns(2)
-with colA:
-    logo_up = st.file_uploader("Logo (png/jpg/jpeg/svg)", type=["png", "jpg", "jpeg", "svg"])
-with colB:
-    hero_up = st.file_uploader("Hero image 1 (png/jpg/jpeg)", type=["png", "jpg", "jpeg"])
-
-colC, colD = st.columns(2)
-with colC:
-    hero2_up = st.file_uploader("Hero image 2 (optional)", type=["png", "jpg", "jpeg"])
-with colD:
-    quiz_img_up = st.file_uploader("Quiz header image (optional)", type=["png", "jpg", "jpeg"])
-
-colE, colF = st.columns(2)
-with colE:
-    quiz_product_up = st.file_uploader("Quiz product image", type=["png", "jpg", "jpeg"])
-with colF:
-    footer1_up = st.file_uploader("Footer image 1 (optional)", type=["png", "jpg", "jpeg"])
-
-footer2_up = st.file_uploader("Footer image 2 (optional)", type=["png", "jpg", "jpeg"])
-
-# Default placeholders so template still renders even without uploads
-logo_url, logo_w, logo_h = "https://via.placeholder.com/160x48?text=Logo", 160, 48
-hero_url, hero_w, hero_h = "https://via.placeholder.com/1200x600?text=Hero+1", 1200, 600
-hero2_url, hero2_w, hero2_h = "https://via.placeholder.com/1200x600?text=Hero+2", 1200, 600
-quiz_img_url, quiz_w, quiz_h = "https://via.placeholder.com/600x300?text=Quiz+Image", 600, 300
-quiz_product_img_url, quiz_product_w, quiz_product_h = "https://via.placeholder.com/600x600?text=Quiz+Product", 600, 600
-footer1_img_url, footer1_w, footer1_h = "https://via.placeholder.com/1088x552?text=Footer+1", 1088, 552
-footer2_img_url, footer2_w, footer2_h = "https://via.placeholder.com/1086x954?text=Footer+2", 1086, 954
 
 # Helper: try Cloudinary if configured, otherwise just detect dimensions
 def _handle_upload(file, public_id, placeholder_url, default_w, default_h):
     url, w, h = placeholder_url, default_w, default_h
     if not file:
         return url, w, h
-    data = file.read()
+
+    # Streamlit UploadedFile can behave like a one-time stream on reruns.
+    # getvalue() is safest and consistent.
+    data = file.getvalue()
+
+    # Create a unique public_id so Cloudinary returns a new URL when the file changes.
+    content_hash = hashlib.sha1(data).hexdigest()[:10]
+    unique_public_id = f"{public_id}-{content_hash}"
+
     try:
-        up = cloudinary_upload(data, public_id)
+        up = cloudinary_upload(data, unique_public_id)
         url, w, h = up["url"], up.get("width", default_w), up.get("height", default_h)
         st.success(f"{public_id} uploaded: {w}×{h}")
     except Exception:
@@ -171,7 +148,70 @@ def _handle_upload(file, public_id, placeholder_url, default_w, default_h):
             st.warning(f"{public_id}: using default size {default_w}×{default_h}.")
     return url, w, h
 
-# Apply to each image
+# ---------- Inputs (Images + CTA + Quiz labels only) ----------
+# ---------- Inputs + CTA + Quiz labels ----------
+
+st.markdown("## Inputs")
+
+with st.form("amp_inputs"):
+    cta_url = st.text_input("Primary CTA URL", value="https://example.com", key="cta_url")
+    quiz_product_url = st.text_input("Quiz product URL", value="https://example.com/collection", key="quiz_product_url")
+
+    st.markdown("### Images")
+    colA, colB = st.columns(2)
+    with colA:
+        logo_up = st.file_uploader("Logo (png/jpg/jpeg/svg)", type=["png", "jpg", "jpeg", "svg"], key="logo_up")
+    with colB:
+        hero_up = st.file_uploader("Hero image 1 (png/jpg/jpeg)", type=["png", "jpg", "jpeg"], key="hero_up")
+
+    colC, colD = st.columns(2)
+    with colC:
+        hero2_up = st.file_uploader("Hero image 2 (optional)", type=["png", "jpg", "jpeg"], key="hero2_up")
+    with colD:
+        quiz_img_up = st.file_uploader("Quiz header image (optional)", type=["png", "jpg", "jpeg"], key="quiz_img_up")
+
+    colE, colF = st.columns(2)
+    with colE:
+        quiz_product_up = st.file_uploader("Quiz product image", type=["png", "jpg", "jpeg"], key="quiz_product_up")
+    with colF:
+        footer1_up = st.file_uploader("Footer image 1 (optional)", type=["png", "jpg", "jpeg"], key="footer1_up")
+
+    footer2_up = st.file_uploader("Footer image 2 (optional)", type=["png", "jpg", "jpeg"], key="footer2_up")
+
+    st.markdown("### Quiz — Question 1")
+    quiz_question   = st.text_input("Q1: Question", value="What would you like to shop?", key="quiz_question")
+    quiz_opt1_label = st.text_input("Q1: Option 1 label", value="New Arrivals", key="quiz_opt1_label")
+    quiz_opt2_label = st.text_input("Q1: Option 2 label", value="Best Sellers", key="quiz_opt2_label")
+    quiz_opt3_label = st.text_input("Q1: Option 3 label", value="Sale", key="quiz_opt3_label")
+    quiz_opt4_label = st.text_input("Q1: Option 4 label", value="Gifts", key="quiz_opt4_label")
+
+    st.markdown("### Quiz — Question 2")
+    quiz2_question   = st.text_input("Q2: Question", value="Which category are you browsing today?", key="quiz2_question")
+    quiz2_opt1_label = st.text_input("Q2: Option 1 label", value="Dresses", key="quiz2_opt1_label")
+    quiz2_opt2_label = st.text_input("Q2: Option 2 label", value="Shoes", key="quiz2_opt2_label")
+    quiz2_opt3_label = st.text_input("Q2: Option 3 label", value="Tops and Tees", key="quiz2_opt3_label")
+    quiz2_opt4_label = st.text_input("Q2: Option 4 label", value="Skirts and Pants", key="quiz2_opt4_label")
+
+    st.caption("Per your rule: we only change visible labels/text in the AMP template, never the underlying option values.")
+
+    submitted = st.form_submit_button("Generate AMP email")
+
+if not submitted:
+    st.info("Fill the inputs above and click **Generate AMP email**. Nothing will upload or change until you submit.")
+    st.stop()
+
+# From here onward, we apply ALL changes in one go (uploads + token replacement).
+
+# Default placeholders so template still renders even without uploads
+logo_url, logo_w, logo_h = "https://via.placeholder.com/160x48?text=Logo", 160, 48
+hero_url, hero_w, hero_h = "https://via.placeholder.com/1200x600?text=Hero+1", 1200, 600
+hero2_url, hero2_w, hero2_h = "https://via.placeholder.com/1200x600?text=Hero+2", 1200, 600
+quiz_img_url, quiz_w, quiz_h = "https://via.placeholder.com/600x300?text=Quiz+Image", 600, 300
+quiz_product_img_url, quiz_product_w, quiz_product_h = "https://via.placeholder.com/600x600?text=Quiz+Product", 600, 600
+footer1_img_url, footer1_w, footer1_h = "https://via.placeholder.com/1088x552?text=Footer+1", 1088, 552
+footer2_img_url, footer2_w, footer2_h = "https://via.placeholder.com/1086x954?text=Footer+2", 1086, 954
+
+# Apply uploads (if provided) - happens only after Submit
 logo_url, logo_w, logo_h = _handle_upload(logo_up, "logo", logo_url, logo_w, logo_h)
 hero_url, hero_w, hero_h = _handle_upload(hero_up, "hero1", hero_url, hero_w, hero_h)
 hero2_url, hero2_w, hero2_h = _handle_upload(hero2_up, "hero2", hero2_url, hero2_w, hero2_h)
@@ -179,24 +219,6 @@ quiz_img_url, quiz_w, quiz_h = _handle_upload(quiz_img_up, "quiz-header", quiz_i
 quiz_product_img_url, quiz_product_w, quiz_product_h = _handle_upload(quiz_product_up, "quiz-product", quiz_product_img_url, quiz_product_w, quiz_product_h)
 footer1_img_url, footer1_w, footer1_h = _handle_upload(footer1_up, "footer1", footer1_img_url, footer1_w, footer1_h)
 footer2_img_url, footer2_w, footer2_h = _handle_upload(footer2_up, "footer2", footer2_img_url, footer2_w, footer2_h)
-
-# Quiz questions
-
-st.markdown("### Quiz — Question 1")
-quiz_question   = st.text_input("Q1: Question", value="What would you like to shop?")
-quiz_opt1_label = st.text_input("Q1: Option 1 label", value="New Arrivals")
-quiz_opt2_label = st.text_input("Q1: Option 2 label", value="The Daily Drop")
-quiz_opt3_label = st.text_input("Q1: Option 3 label", value="Occasions")
-quiz_opt4_label = st.text_input("Q1: Option 4 label", value="Sale")
-
-st.markdown("### Quiz — Question 2")
-quiz2_question   = st.text_input("Q2: Question", value="What in New Arrivals:")
-quiz2_opt1_label = st.text_input("Q2: Option 1 label", value="The Fall Edit")
-quiz2_opt2_label = st.text_input("Q2: Option 2 label", value="Sweaters")
-quiz2_opt3_label = st.text_input("Q2: Option 3 label", value="Tops and Tees")
-quiz2_opt4_label = st.text_input("Q2: Option 4 label", value="Skirts and Pants")
-
-st.caption("Per your rule: we only change visible labels/text in the AMP template, never the underlying option values.")
 
 # ---------- Build token map & generate AMP ----------
 token_map = {
