@@ -80,8 +80,7 @@ def cloudinary_upload(file_bytes: bytes, public_id: str) -> dict:
     data = {
         "upload_preset": preset,
         "public_id": public_id,
-        "overwrite": "true",
-        "invalidate": "true",
+        "folder": "netcore-event-demo",
     }
     import certifi
     r = requests.post(url, files=files, data=data, timeout=60, verify=certifi.where())
