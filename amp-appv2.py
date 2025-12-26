@@ -337,13 +337,6 @@ st.download_button("Download AMP HTML", amp_final, file_name="amp.html", mime="t
 st.markdown("---")
 st.subheader("Send test")
 
-with st.form("send_test_form"):
-    subject   = st.text_input("Subject", "", key="send_subject")
-    preheader = st.text_input("Preheader (optional)", "", key="send_preheader")
-    to_email  = st.text_input("To (blank uses DEFAULT_TEST_TO)", "", key="send_to")
-        
-
-
 has_secrets = all([
     bool(st.secrets.get("NETCORE_API_KEY", "")),
     bool(st.secrets.get("NETCORE_SEND_URL", "")),
@@ -357,7 +350,13 @@ if not has_templates:
 if not has_secrets:
     st.info("Add NETCORE_API_KEY, NETCORE_SEND_URL, FROM_EMAIL, FROM_NAME (and DEFAULT_TEST_TO) to .streamlit/secrets.toml to enable sending.")
 
-send_btn = st.form_submit_button("Send Test Email", disabled=not (has_templates and has_secrets))
+with st.form("send_test_form"):
+    subject   = st.text_input("Subject", "", key="send_subject")
+    preheader = st.text_input("Preheader (optional)", "", key="send_preheader")
+    to_email  = st.text_input("To (blank uses DEFAULT_TEST_TO)", "", key="send_to")
+
+    send_btn = st.form_submit_button("Send Test Email", disabled=not (has_templates and has_secrets))
+
 if send_btn:
     try:
         resp = send_v6(subject, to_email, amp_final, fb_src, preheader)
@@ -368,4 +367,3 @@ if send_btn:
             st.text(resp.text)
     except Exception as e:
         st.error(str(e))
-
