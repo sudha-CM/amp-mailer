@@ -125,6 +125,7 @@
 
       .displayBlock { display: block; }
       .displayNone { display: none; }
+      .hide { display: none !important; }
 
       @media all and (max-width: 500px) {
         .w600 { width: 100%; }
@@ -160,7 +161,7 @@
                 <div style="padding: 10px 0;"></div>
 
                 <!-- LOGO -->
-                <div style="max-width: 1000px;margin: 20px auto 0;">
+                <div class="{{logo_wrap_class}}" style="max-width: 1000px;margin: 20px auto 0;">
                   <a href="{{cta_url}}" target="_blank" style="color:#15c; text-decoration:underline;">
                     <amp-img
                       alt="Logo"
@@ -175,7 +176,7 @@
                 </div>
 
                 <!-- HERO 1 -->
-                <div>
+                <div class="{{hero_wrap_class}}">
                   <a href="{{cta_url}}" target="_blank" style="color:#15c; text-decoration:underline;">
                     <amp-img
                       alt="Hero Image"
@@ -190,7 +191,7 @@
                 </div>
 
                 <!-- HERO 2 -->
-                <div>
+                <div class="{{hero2_wrap_class}}">
                   <a href="{{cta_url}}" target="_blank" style="color:#15c; text-decoration:underline;">
                     <amp-img
                       alt="Hero Image 2"
@@ -212,7 +213,7 @@
                     <div style="max-width: 534px;margin: 0 auto;">
 
                       <!-- Quiz image -->
-                      <div style="margin-bottom: 10px;">
+                      <div class="{{quiz_wrap_class}}" style="margin-bottom: 10px;">
                         <amp-img
                           alt="Quiz Image"
                           title="Quiz Image"
@@ -430,7 +431,7 @@
                           <div style="margin: 10px 0;">
                             <div style="background-color: #ffffff;padding: 10px;">
                               <div class="quiz_thumb_box" style="font-family: 'Helvetica', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;">
-                                <div>
+                                <div class="{{quiz_product_wrap_class}}">
                                   <a href="{{quiz_product_url}}" style="color:#15c; font-style:normal; font-weight:normal; text-decoration:underline" target="_blank">
                                     <amp-img
                                       alt="Quiz Product Image"
@@ -464,7 +465,8 @@
                 </div>
 
                 <!-- FOOTER IMAGES -->
-                <div>
+            <div>
+                <div class="{{footer1_wrap_class}}">
                   <a href="{{cta_url}}" target="_blank" style="color:#15c; text-decoration:underline;">
                     <amp-img
                       alt="Footer Image 1"
@@ -476,6 +478,9 @@
                       style="display:block;">
                     </amp-img>
                   </a>
+                    </div>
+
+                <div class="{{footer2_wrap_class}}">
                   <a href="{{cta_url}}" target="_blank" style="color:#15c; text-decoration:underline;">
                     <amp-img
                       alt="Footer Image 2"
@@ -488,6 +493,7 @@
                     </amp-img>
                   </a>
                 </div>
+            </div>
 
                 <div style="padding: 10px 0;"></div>
               </td>
