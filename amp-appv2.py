@@ -143,12 +143,6 @@ def send_v6(subject: str, to_email: str, amp_html: str, fallback_html: str, preh
       ],
     }
 
-        "content": [
-            {"type": "text/plain",      "value": text_part},
-            {"type": "text/x-amp-html", "value": amp_html},
-            {"type": "text/html",       "value": fallback_html},
-        ],
-    }
 
    headers = {
     "Content-Type": "application/json",
