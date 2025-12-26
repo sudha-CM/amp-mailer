@@ -1,12 +1,9 @@
 import io
 import hashlib
-import re
 from pathlib import Path
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr
-import re
-
 
 import requests
 import streamlit as st
@@ -18,16 +15,6 @@ st.title("AMP Mailer — v2 (images + quiz inputs)")
 
 import os, requests, io
 from PIL import Image
-
-def remove_section(html: str, start_marker: str, end_marker: str) -> str:
-    """
-    Removes everything from <!-- start_marker --> up to (but not including) <!-- end_marker -->
-    Keeps the end marker so subsequent removals still work.
-    """
-    pattern = rf"<!--\s*{re.escape(start_marker)}\s*-->.*?(?=<!--\s*{re.escape(end_marker)}\s*-->)"
-    return re.sub(pattern, f"<!-- {start_marker} -->\n<!-- removed optional image block -->\n", html, flags=re.DOTALL | re.IGNORECASE)
-
-
 
 def _diag_try_direct_upload():
     cloud = st.secrets.get("CLOUDINARY_CLOUD_NAME", "")
@@ -72,51 +59,6 @@ def replace_tokens(html: str, mapping: dict) -> str:
         out = out.replace("{{" + k + "}}", str(v))
     return out
 
-
-
-def strip_optional_blocks(html: str, placeholder_urls: list[str]) -> str:
-    """Remove whole containers that only exist to show placeholder images.
-
-    This prevents awkward blank blocks when the user doesn't upload an image for that section.
-    Works for both AMP (<amp-img>) and fallback (<img>) templates.
-    """
-    out = html
-    for url in placeholder_urls:
-        u = re.escape(url)
-
-        # Remove common wrapper blocks that contain only the placeholder image (div/a wrappers)
-        out = re.sub(
-            rf"""<div\b[^>]*>\s*(?:<a\b[^>]*>\s*)?(?:<amp-img\b[^>]*\bsrc=['\"]{u}['\"][^>]*>\s*</amp-img>|<img\b[^>]*\bsrc=['\"]{u}['\"][^>]*>)\s*(?:</a>\s*)?</div>""",
-            "<!-- removed optional image block -->",
-            out,
-            flags=re.IGNORECASE | re.DOTALL,
-        )
-
-        # Remove common table cell blocks that contain only the placeholder image
-        out = re.sub(
-            rf"""<td\b[^>]*>\s*(?:<a\b[^>]*>\s*)?(?:<amp-img\b[^>]*\bsrc=['\"]{u}['\"][^>]*>\s*</amp-img>|<img\b[^>]*\bsrc=['\"]{u}['\"][^>]*>)\s*(?:</a>\s*)?</td>""",
-            "<!-- removed optional image cell -->",
-            out,
-            flags=re.IGNORECASE | re.DOTALL,
-        )
-
-        # As a fallback, remove the image tags themselves
-        out = re.sub(
-            rf"""<amp-img\b[^>]*\bsrc=['\"]{u}['\"][^>]*>\s*</amp-img>""",
-            "",
-            out,
-            flags=re.IGNORECASE | re.DOTALL,
-        )
-        out = re.sub(
-            rf"""<img\b[^>]*\bsrc=['\"]{u}['\"][^>]*>""",
-            "",
-            out,
-            flags=re.IGNORECASE | re.DOTALL,
-        )
-
-    # Clean up now-empty divs that can be left behind
-    out = re.sub(r"<div\b[^>]*>\s*(?:<!--.*?-->\s*)*</div>", "", out, flags=re.IGNORECASE | re.DOTALL)
-    return out
 def amp_basics_ok(amp_html: str) -> list:
     errs = []
     if "⚡4email" not in amp_html and "amp4email" not in amp_html:
@@ -138,6 +80,7 @@ def cloudinary_upload(file_bytes: bytes, public_id: str) -> dict:
     data = {
         "upload_preset": preset,
         "public_id": public_id,
+        "folder": "netcore-event-demo",
     }
     import certifi
     r = requests.post(url, files=files, data=data, timeout=60, verify=certifi.where())
@@ -256,15 +199,6 @@ if not submitted:
     st.info("Fill the inputs above and click **Generate AMP email**. Nothing will upload or change until you submit.")
     st.stop()
 
-    # Track which optional images were actually uploaded in this session
-has_logo  = logo_up is not None
-has_hero1 = hero1_up is not None
-has_hero2 = hero2_up is not None
-has_quiz  = quiz_img_up is not None
-has_quiz_product = quiz_product_up is not None
-has_footer1 = footer1_up is not None
-has_footer2 = footer2_up is not None    
-
 # From here onward, we apply ALL changes in one go (uploads + token replacement).
 
 # Default placeholders so template still renders even without uploads
@@ -310,6 +244,20 @@ token_map = {
     "footer2_width":        footer2_w,
     "footer2_height":       footer2_h,
 
+    # wrapper classes (hide optional sections when no upload)
+    "logo_wrap_class": "" if logo_up else "hide",
+    "hero_wrap_class": "" if hero_up else "hide",
+
+    # optional images
+    "hero2_wrap_class": "" if hero2_up else "hide",
+    "quiz_wrap_class": "" if quiz_img_up else "hide",
+    "footer1_wrap_class": "" if footer1_up else "hide",
+    "footer2_wrap_class": "" if footer2_up else "hide",
+
+    # quiz product image (treat as required in UI, but safe anyway)
+    "quiz_product_wrap_class": "" if quiz_product_up else "hide",
+
+
     # links
     "cta_url":              cta_url,
     "quiz_product_url":     quiz_product_url,
@@ -330,26 +278,6 @@ token_map = {
 
 
 amp_final = replace_tokens(amp_src, token_map)
-
-# Remove optional image blocks if not uploaded
-if not has_logo:
-    amp_final = remove_section(amp_final, "logo", "end_logo")
-if not has_hero1:
-    amp_final = remove_section(amp_final, "hero1", "end_hero1")
-if not has_hero2:
-    amp_final = remove_section(amp_final, "hero2", "end_hero2")
-if not has_quiz:
-    amp_final = remove_section(amp_final, "quiz", "end_quiz")
-if not has_quiz_product:
-    amp_final = remove_section(amp_final, "quiz_product", "end_quiz_product")
-if not has_footer1:
-    amp_final = remove_section(amp_final, "footer1", "end_footer1")
-if not has_footer2:
-    amp_final = remove_section(amp_final, "footer2", "end_footer2")
-
-# Remove blocks that would otherwise render placeholder-image spacing
-placeholder_urls = [logo_url, hero_url, hero2_url, quiz_img_url, quiz_product_img_url, footer1_img_url, footer2_img_url]
-amp_final = strip_optional_blocks(amp_final, placeholder_urls)
 errs = amp_basics_ok(amp_final)
 if errs:
     st.error("AMP checks: " + "; ".join(errs))
