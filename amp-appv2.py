@@ -10,8 +10,8 @@ import streamlit as st
 from streamlit.components.v1 import html as st_html
 from PIL import Image
 
-st.set_page_config(page_title="AMP Mailer v2", page_icon="📧", layout="wide")
-st.title("AMP Mailer — v2 (images + quiz inputs)")
+st.set_page_config(page_title="Interactive Email Creator", page_icon="📧", layout="wide")
+st.title("Interactive Email Builder")
 
 import os, requests, io
 from PIL import Image
@@ -97,26 +97,64 @@ def dims(file_bytes: bytes):
 
 def send_v6(subject: str, to_email: str, amp_html: str, fallback_html: str, preheader: str = ""):
     """
-    Send via Netcore v6 using 3-part content: text/plain + text/x-amp-html + text/html.
-    Adjust header 'api_key' vs 'Authorization' to match your account.
+    Netcore Email API V6 send (AMP + HTML fallback + text).
+    Endpoint example: https://emailapi.netcorecloud.net/v6/mail/send
+    Auth: Authorization: Bearer <API_KEY>
     """
-    text_part = f"{subject}\n\n{preheader}" if preheader else subject
+
+    # ----- Resolve recipient -----
+    to_final = (to_email or "").strip() or (st.secrets.get("DEFAULT_TEST_TO", "") or "").strip()
+    if not to_final:
+        raise ValueError("No recipient email provided. Enter 'To' or set DEFAULT_TEST_TO in secrets.toml")
+
+    # ----- Resolve subject/from -----
+    subject_final = (subject or "").strip()
+    if not subject_final:
+        raise ValueError("Subject is required.")
+
+    from_email = (st.secrets.get("FROM_EMAIL", "") or "").strip()
+    from_name  = (st.secrets.get("FROM_NAME", "") or "").strip()
+    if not from_email or not from_name:
+        raise ValueError("FROM_EMAIL and FROM_NAME must be set in secrets.toml")
+
+    # ----- Endpoint + API key -----
+    url = (st.secrets.get("NETCORE_SEND_URL", "") or "").strip()
+    api_key = (st.secrets.get("NETCORE_API_KEY", "") or "").strip()
+    if not url:
+        raise ValueError("NETCORE_SEND_URL is missing in secrets.toml")
+    if not api_key:
+        raise ValueError("NETCORE_API_KEY is missing in secrets.toml")
+
+    # ----- Build content -----
+    text_part = f"{subject_final}\n\n{preheader}".strip() if preheader else subject_final
+
     payload = {
-        "from": {"email": st.secrets.get("FROM_EMAIL", ""), "name": st.secrets.get("FROM_NAME", "")},
-        "subject": subject,
-        "personalizations": [{"to": [{"email": to_email or st.secrets.get('DEFAULT_TEST_TO','') }]}],
+        "from": {"email": from_email, "name": from_name},
+
+        # Keep subject at root (many providers accept this).
+        # If your account expects subject inside personalizations, move it there.
+        "subject": subject_final,
+
+        "personalizations": [
+            {
+                "to": [{"email": to_final}],
+            }
+        ],
+
         "content": [
             {"type": "text/plain",      "value": text_part},
             {"type": "text/x-amp-html", "value": amp_html},
-            {"type": "text/html",       "value": fallback_html}
-        ]
+            {"type": "text/html",       "value": fallback_html},
+        ],
     }
+
     headers = {
         "Content-Type": "application/json",
-        "api_key": st.secrets.get("NETCORE_API_KEY", "")
+        "Authorization": f"Bearer {api_key}",  # V6 docs show Bearer auth
     }
-    url = st.secrets.get("NETCORE_SEND_URL", "")
+
     return requests.post(url, headers=headers, json=payload, timeout=60)
+
 
 
 
@@ -177,14 +215,14 @@ with st.form("amp_inputs"):
 
     footer2_up = st.file_uploader("Footer image 2 (optional)", type=["png", "jpg", "jpeg"], key="footer2_up")
 
-    st.markdown("### Quiz — Question 1")
+    st.markdown("### Quiz Question 1")
     quiz_question   = st.text_input("Q1: Question", value="What would you like to shop?", key="quiz_question")
     quiz_opt1_label = st.text_input("Q1: Option 1 label", value="New Arrivals", key="quiz_opt1_label")
     quiz_opt2_label = st.text_input("Q1: Option 2 label", value="Best Sellers", key="quiz_opt2_label")
     quiz_opt3_label = st.text_input("Q1: Option 3 label", value="Sale", key="quiz_opt3_label")
     quiz_opt4_label = st.text_input("Q1: Option 4 label", value="Gifts", key="quiz_opt4_label")
 
-    st.markdown("### Quiz — Question 2")
+    st.markdown("### Quiz Question 2")
     quiz2_question   = st.text_input("Q2: Question", value="Which category are you browsing today?", key="quiz2_question")
     quiz2_opt1_label = st.text_input("Q2: Option 1 label", value="Dresses", key="quiz2_opt1_label")
     quiz2_opt2_label = st.text_input("Q2: Option 2 label", value="Shoes", key="quiz2_opt2_label")
@@ -196,7 +234,7 @@ with st.form("amp_inputs"):
     submitted = st.form_submit_button("Generate AMP email")
 
 if not submitted:
-    st.info("Fill the inputs above and click **Generate AMP email**. Nothing will upload or change until you submit.")
+    st.info("Fill the inputs above and click **Generate AMP email**.")
     st.stop()
 
 # From here onward, we apply ALL changes in one go (uploads + token replacement).
@@ -318,9 +356,13 @@ if not has_secrets:
 
 send_btn = st.button("Send Test Email", disabled=not (has_templates and has_secrets))
 if send_btn:
-    resp = send_v6(subject, to_email, amp_final, fb_src, preheader)
-    st.write("Status:", resp.status_code)
     try:
-        st.json(resp.json())
-    except Exception:
-        st.text(resp.text)
+        resp = send_v6(subject, to_email, amp_final, fb_src, preheader)
+        st.write("Status:", resp.status_code)
+        try:
+            st.json(resp.json())
+        except Exception:
+            st.text(resp.text)
+    except Exception as e:
+        st.error(str(e))
+
