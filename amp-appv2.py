@@ -1,5 +1,6 @@
 import io
 import hashlib
+import re
 from pathlib import Path
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -59,6 +60,51 @@ def replace_tokens(html: str, mapping: dict) -> str:
         out = out.replace("{{" + k + "}}", str(v))
     return out
 
+
+
+def strip_optional_blocks(html: str, placeholder_urls: list[str]) -> str:
+    """Remove whole containers that only exist to show placeholder images.
+
+    This prevents awkward blank blocks when the user doesn't upload an image for that section.
+    Works for both AMP (<amp-img>) and fallback (<img>) templates.
+    """
+    out = html
+    for url in placeholder_urls:
+        u = re.escape(url)
+
+        # Remove common wrapper blocks that contain only the placeholder image (div/a wrappers)
+        out = re.sub(
+            rf"""<div\b[^>]*>\s*(?:<a\b[^>]*>\s*)?(?:<amp-img\b[^>]*\bsrc=['\"]{u}['\"][^>]*>\s*</amp-img>|<img\b[^>]*\bsrc=['\"]{u}['\"][^>]*>)\s*(?:</a>\s*)?</div>""",
+            "<!-- removed optional image block -->",
+            out,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+
+        # Remove common table cell blocks that contain only the placeholder image
+        out = re.sub(
+            rf"""<td\b[^>]*>\s*(?:<a\b[^>]*>\s*)?(?:<amp-img\b[^>]*\bsrc=['\"]{u}['\"][^>]*>\s*</amp-img>|<img\b[^>]*\bsrc=['\"]{u}['\"][^>]*>)\s*(?:</a>\s*)?</td>""",
+            "<!-- removed optional image cell -->",
+            out,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+
+        # As a fallback, remove the image tags themselves
+        out = re.sub(
+            rf"""<amp-img\b[^>]*\bsrc=['\"]{u}['\"][^>]*>\s*</amp-img>""",
+            "",
+            out,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        out = re.sub(
+            rf"""<img\b[^>]*\bsrc=['\"]{u}['\"][^>]*>""",
+            "",
+            out,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+
+    # Clean up now-empty divs that can be left behind
+    out = re.sub(r"<div\b[^>]*>\s*(?:<!--.*?-->\s*)*</div>", "", out, flags=re.IGNORECASE | re.DOTALL)
+    return out
 def amp_basics_ok(amp_html: str) -> list:
     errs = []
     if "⚡4email" not in amp_html and "amp4email" not in amp_html:
@@ -80,7 +126,6 @@ def cloudinary_upload(file_bytes: bytes, public_id: str) -> dict:
     data = {
         "upload_preset": preset,
         "public_id": public_id,
-        "folder": "netcore-event-demo",
     }
     import certifi
     r = requests.post(url, files=files, data=data, timeout=60, verify=certifi.where())
@@ -264,6 +309,10 @@ token_map = {
 
 
 amp_final = replace_tokens(amp_src, token_map)
+
+# Remove blocks that would otherwise render placeholder-image spacing
+placeholder_urls = [logo_url, hero_url, hero2_url, quiz_img_url, quiz_product_img_url, footer1_img_url, footer2_img_url]
+amp_final = strip_optional_blocks(amp_final, placeholder_urls)
 errs = amp_basics_ok(amp_final)
 if errs:
     st.error("AMP checks: " + "; ".join(errs))
