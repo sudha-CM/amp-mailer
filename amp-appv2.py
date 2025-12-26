@@ -5,6 +5,8 @@ from pathlib import Path
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr
+import re
+
 
 import requests
 import streamlit as st
@@ -16,6 +18,16 @@ st.title("AMP Mailer — v2 (images + quiz inputs)")
 
 import os, requests, io
 from PIL import Image
+
+def remove_section(html: str, start_marker: str, end_marker: str) -> str:
+    """
+    Removes everything from <!-- start_marker --> up to (but not including) <!-- end_marker -->
+    Keeps the end marker so subsequent removals still work.
+    """
+    pattern = rf"<!--\s*{re.escape(start_marker)}\s*-->.*?(?=<!--\s*{re.escape(end_marker)}\s*-->)"
+    return re.sub(pattern, f"<!-- {start_marker} -->\n<!-- removed optional image block -->\n", html, flags=re.DOTALL | re.IGNORECASE)
+
+
 
 def _diag_try_direct_upload():
     cloud = st.secrets.get("CLOUDINARY_CLOUD_NAME", "")
@@ -244,6 +256,15 @@ if not submitted:
     st.info("Fill the inputs above and click **Generate AMP email**. Nothing will upload or change until you submit.")
     st.stop()
 
+    # Track which optional images were actually uploaded in this session
+has_logo  = logo_up is not None
+has_hero1 = hero1_up is not None
+has_hero2 = hero2_up is not None
+has_quiz  = quiz_img_up is not None
+has_quiz_product = quiz_product_up is not None
+has_footer1 = footer1_up is not None
+has_footer2 = footer2_up is not None    
+
 # From here onward, we apply ALL changes in one go (uploads + token replacement).
 
 # Default placeholders so template still renders even without uploads
@@ -309,6 +330,22 @@ token_map = {
 
 
 amp_final = replace_tokens(amp_src, token_map)
+
+# Remove optional image blocks if not uploaded
+if not has_logo:
+    amp_final = remove_section(amp_final, "logo", "end_logo")
+if not has_hero1:
+    amp_final = remove_section(amp_final, "hero1", "end_hero1")
+if not has_hero2:
+    amp_final = remove_section(amp_final, "hero2", "end_hero2")
+if not has_quiz:
+    amp_final = remove_section(amp_final, "quiz", "end_quiz")
+if not has_quiz_product:
+    amp_final = remove_section(amp_final, "quiz_product", "end_quiz_product")
+if not has_footer1:
+    amp_final = remove_section(amp_final, "footer1", "end_footer1")
+if not has_footer2:
+    amp_final = remove_section(amp_final, "footer2", "end_footer2")
 
 # Remove blocks that would otherwise render placeholder-image spacing
 placeholder_urls = [logo_url, hero_url, hero2_url, quiz_img_url, quiz_product_img_url, footer1_img_url, footer2_img_url]
