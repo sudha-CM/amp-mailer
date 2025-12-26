@@ -129,17 +129,19 @@ def send_v6(subject: str, to_email: str, amp_html: str, fallback_html: str, preh
     text_part = f"{subject_final}\n\n{preheader}".strip() if preheader else subject_final
 
     payload = {
-        "from": {"email": from_email, "name": from_name},
-
-        # Keep subject at root (many providers accept this).
-        # If your account expects subject inside personalizations, move it there.
-        "subject": subject_final,
-
-        "personalizations": [
-            {
-                "to": [{"email": to_final}],
-            }
-        ],
+    "from": {"email": from_email, "name": from_name},
+    "personalizations": [
+        {
+            "to": [{"email": to_final}],
+            "subject": subject_final,
+            "content": [
+                {"type": "text/plain",      "value": text_part},
+                {"type": "text/x-amp-html", "value": amp_html},
+                {"type": "text/html",       "value": fallback_html},
+               ],
+         }
+      ],
+    }
 
         "content": [
             {"type": "text/plain",      "value": text_part},
@@ -148,10 +150,11 @@ def send_v6(subject: str, to_email: str, amp_html: str, fallback_html: str, preh
         ],
     }
 
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}",  # V6 docs show Bearer auth
-    }
+   headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"Bearer {st.secrets.get('NETCORE_API_KEY','')}"
+}
+
 
     return requests.post(url, headers=headers, json=payload, timeout=60)
 
@@ -359,11 +362,18 @@ with st.form("send_test_form"):
 
 if send_btn:
     try:
-        resp = send_v6(subject, to_email, amp_final, fb_src, preheader)
-        st.write("Status:", resp.status_code)
-        try:
-            st.json(resp.json())
-        except Exception:
-            st.text(resp.text)
+        with st.spinner("Sending test email..."):
+            resp = send_v6(subject, to_email, amp_final, fb_src, preheader)
+
+        st.session_state["last_send_status"] = resp.status_code
+        st.session_state["last_send_text"] = resp.text
+
     except Exception as e:
-        st.error(str(e))
+        st.session_state["last_send_status"] = "ERROR"
+        st.session_state["last_send_text"] = str(e)
+        
+# Always show last send result (even after rerun)
+if "last_send_status" in st.session_state:
+    st.markdown("### 📬 Last send result")
+    st.write("Status:", st.session_state["last_send_status"])
+    st.text(st.session_state["last_send_text"])
