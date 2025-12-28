@@ -132,28 +132,33 @@ def send_v6(subject: str, to_email: str, amp_html: str, fallback_html: str, preh
     text_part = f"{subject_final}\n\n{preheader}".strip() if preheader else subject_final
 
     payload = {
-    "from": {"email": from_email, "name": from_name},
-
     "personalizations": [
         {
-            "to": [{"email": to_final}],
-            # subject should NOT be here based on the error
+            "to": [
+                {"email": to_final}
+            ]
         }
     ],
-
-    # REQUIRED: content must be outside personalizations
+    "from": {
+        "email": from_email,
+        "name": from_name
+    },
+    "subject": subject_final,
     "content": [
-        {"type": "text/plain",      "value": text_part},
-        {"type": "text/x-amp-html", "value": amp_html},
-        {"type": "text/html",       "value": fallback_html},
-    ],
-
-    # Put subject in headers (common for this style of API)
-    "headers": {
-        "Subject": subject_final
-    }
+        {
+            "type": "text",
+            "value": text_part
+        },
+        {
+            "type": "amp",
+            "value": amp_html
+        },
+        {
+            "type": "html",
+            "value": fallback_html
+        }
+    ]
 }
-
 
     headers = {
         "Content-Type": "application/json",
