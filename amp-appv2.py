@@ -98,7 +98,7 @@ def dims(file_bytes: bytes):
 def send_v6(subject: str, to_email: str, amp_html: str, fallback_html: str, preheader: str = ""):
     """
     Netcore Email API V6 send (AMP + HTML fallback + text).
-    Endpoint example: https://emailapi.netcorecloud.net/v6/mail/send
+    Endpoint: https://emailapi.netcorecloud.net/v6/mail/send
     Auth: Authorization: Bearer <API_KEY>
     """
 
@@ -113,7 +113,7 @@ def send_v6(subject: str, to_email: str, amp_html: str, fallback_html: str, preh
         raise ValueError("Subject is required.")
 
     from_email = (st.secrets.get("FROM_EMAIL", "") or "").strip()
-    from_name  = (st.secrets.get("FROM_NAME", "") or "").strip()
+    from_name = (st.secrets.get("FROM_NAME", "") or "").strip()
     if not from_email or not from_name:
         raise ValueError("FROM_EMAIL and FROM_NAME must be set in secrets.toml")
 
@@ -129,29 +129,24 @@ def send_v6(subject: str, to_email: str, amp_html: str, fallback_html: str, preh
     text_part = f"{subject_final}\n\n{preheader}".strip() if preheader else subject_final
 
     payload = {
-    "from": {"email": from_email, "name": from_name},
-    "personalizations": [
-        {
-            "to": [
-                {"email": to_final}
-            ],
-            "subject": subject_final,
-            "content": [
-                {"type": "text/plain",      "value": text_part},
-                {"type": "text/x-amp-html", "value": amp_html},
-                {"type": "text/html",       "value": fallback_html},
-            ],
-        }
-    ],
-}
+        "from": {"email": from_email, "name": from_name},
+        "personalizations": [
+            {
+                "to": [{"email": to_final}],
+                "subject": subject_final,
+                "content": [
+                    {"type": "text/plain", "value": text_part},
+                    {"type": "text/x-amp-html", "value": amp_html},
+                    {"type": "text/html", "value": fallback_html},
+                ],
+            }
+        ],
+    }
 
-
-
-   headers = {
-    "Content-Type": "application/json",
-    "Authorization": f"Bearer {st.secrets.get('NETCORE_API_KEY','')}"
-}
-
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+    }
 
     return requests.post(url, headers=headers, json=payload, timeout=60)
 
