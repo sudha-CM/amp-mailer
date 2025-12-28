@@ -13,6 +13,9 @@ from PIL import Image
 st.set_page_config(page_title="Interactive Email Creator", page_icon="📧", layout="wide")
 st.title("Interactive Email Builder")
 
+if "amp_generated" not in st.session_state:
+    st.session_state["amp_generated"] = False
+
 import os, requests, io
 from PIL import Image
 
@@ -226,11 +229,16 @@ with st.form("amp_inputs"):
 
     st.caption("Per your rule: we only change visible labels/text in the AMP template, never the underlying option values.")
 
+   
     submitted = st.form_submit_button("Generate AMP email")
+if submitted:
+    st.session_state["amp_generated"] = True
 
-if not submitted:
+
+if (not submitted) and (not st.session_state["amp_generated"]):
     st.info("Fill the inputs above and click **Generate AMP email**.")
     st.stop()
+
 
 # From here onward, we apply ALL changes in one go (uploads + token replacement).
 
@@ -311,6 +319,9 @@ token_map = {
 
 
 amp_final = replace_tokens(amp_src, token_map)
+st.session_state["amp_final"] = amp_final
+st.session_state["fb_src"] = fb_src
+
 errs = amp_basics_ok(amp_final)
 if errs:
     st.error("AMP checks: " + "; ".join(errs))
@@ -325,6 +336,7 @@ with tab_preview:
     st.subheader("AMP — visual preview")
     st.info("Preview is approximate in Streamlit. Use HTTPS image URLs + explicit width/height for <amp-img>.")
     st_html(amp_final, height=900, scrolling=True)
+
 
 st.download_button("Download AMP HTML", amp_final, file_name="amp.html", mime="text/html")
 
@@ -355,7 +367,14 @@ with st.form("send_test_form"):
 if send_btn:
     try:
         with st.spinner("Sending test email..."):
-            resp = send_v6(subject, to_email, amp_final, fb_src, preheader)
+            resp = send_v6(
+    subject,
+    to_email,
+    st.session_state["amp_final"],
+    st.session_state["fb_src"],
+    preheader
+)
+
 
         st.session_state["last_send_status"] = resp.status_code
         st.session_state["last_send_text"] = resp.text
