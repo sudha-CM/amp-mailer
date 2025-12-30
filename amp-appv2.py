@@ -145,10 +145,7 @@ def send_v6(subject: str, to_email: str, amp_html: str, fallback_html: str, preh
     },
     "subject": subject_final,
     "content": [
-        {
-            "type": "text",
-            "value": text_part
-        },
+    
         {
             "type": "amp",
             "value": amp_html
